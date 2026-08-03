@@ -63,6 +63,32 @@ LLM_COST = Counter(
 )
 
 
+def record_usage(usage: object, model: str = "") -> None:
+    """Account one response's usage.
+
+    Called from the streaming loop because litellm's success_callback does not
+    fire for streaming calls issued through a Router — which is every chat this
+    app makes, so without this the token and cost counters never move.
+    """
+    prompt = int(getattr(usage, "prompt_tokens", 0) or 0)
+    completion = int(getattr(usage, "completion_tokens", 0) or 0)
+    if prompt:
+        LLM_TOKENS.labels("input").inc(prompt)
+    if completion:
+        LLM_TOKENS.labels("output").inc(completion)
+    if not model:
+        return
+    try:
+        import litellm
+
+        prompt_cost, completion_cost = litellm.cost_per_token(
+            model=model, prompt_tokens=prompt, completion_tokens=completion
+        )
+        LLM_COST.inc(float(prompt_cost) + float(completion_cost))
+    except Exception:  # unknown model in the cost map, offline, etc.
+        pass
+
+
 def render_metrics() -> tuple[bytes, str]:
     return generate_latest(), CONTENT_TYPE_LATEST
 

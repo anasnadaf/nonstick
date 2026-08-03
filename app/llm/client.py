@@ -17,6 +17,7 @@ from typing import Any
 import numpy as np
 
 from app.config import get_settings
+from app.obs.metrics import record_usage
 
 
 @dataclass
@@ -81,10 +82,20 @@ class LLMClient:
             temperature=self.settings.llm_temperature,
             max_tokens=self.settings.llm_max_tokens,
             stream=True,
+            # Without this a streamed response carries no usage block, so the
+            # LiteLLM success callback has nothing to report and the token and
+            # cost counters stay at zero forever. Providers that don't support
+            # it have the param dropped (see drop_params below).
+            stream_options={"include_usage": True},
         )
         content_parts: list[str] = []
         tool_calls: dict[int, dict] = {}
         async for chunk in stream:
+            # The usage block rides on a trailing chunk that carries no choices.
+            # Account for it here rather than in litellm's success_callback,
+            # which is never invoked for streaming calls made through a Router.
+            if getattr(chunk, "usage", None):
+                record_usage(chunk.usage, self.settings.model)
             delta = chunk.choices[0].delta if chunk.choices else None
             if delta is None:
                 continue
@@ -120,7 +131,12 @@ class LLMClient:
 
     def _get_router(self):
         if self._router is None:
+            import litellm
             from litellm import Router
+
+            # Keeps the provider-agnostic promise honest: params a given
+            # provider does not accept are dropped rather than raising.
+            litellm.drop_params = True
 
             s = self.settings
             self._router = Router(
