@@ -1,7 +1,33 @@
 import { useState } from "react";
-import { api } from "../api";
-import type { Note } from "../types";
-import Markdown from "./Markdown";
+import {
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+  Plus,
+  Sparkles,
+  Trash2,
+} from "lucide-react";
+import { toast } from "sonner";
+
+import { api } from "@/api";
+import Markdown from "@/components/Markdown";
+import { Pane, PaneBody, PaneHeader } from "@/components/Pane";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+import type { Note } from "@/types";
 
 const KIND_LABEL: Record<string, string> = {
   manual: "note",
@@ -10,31 +36,32 @@ const KIND_LABEL: Record<string, string> = {
   faq: "FAQ",
 };
 
+const KINDS = ["summary", "study_guide", "faq"] as const;
+
 export default function StudioPane({
   notebookId,
   notes,
   hasReadySources,
   onChanged,
-  onError,
 }: {
   notebookId: string;
   notes: Note[];
   hasReadySources: boolean;
   onChanged: () => void;
-  onError: (msg: string) => void;
 }) {
   const [generating, setGenerating] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState({ title: "", content_md: "" });
+  const [pendingDelete, setPendingDelete] = useState<Note | null>(null);
 
-  const generate = async (kind: "summary" | "study_guide" | "faq") => {
+  const generate = async (kind: (typeof KINDS)[number]) => {
     setGenerating(kind);
     try {
       await api.post(`/api/notebooks/${notebookId}/notes/generate`, { kind });
       onChanged();
     } catch (e) {
-      onError((e as Error).message);
+      toast.error((e as Error).message);
     } finally {
       setGenerating(null);
     }
@@ -48,88 +75,164 @@ export default function StudioPane({
       setAdding(false);
       onChanged();
     } catch (e) {
-      onError((e as Error).message);
+      toast.error((e as Error).message);
     }
   };
 
-  const remove = async (id: string) => {
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
     try {
-      await api.delete(`/api/notebooks/${notebookId}/notes/${id}`);
+      await api.delete(`/api/notebooks/${notebookId}/notes/${pendingDelete.id}`);
       onChanged();
     } catch (e) {
-      onError((e as Error).message);
+      toast.error((e as Error).message);
+    } finally {
+      setPendingDelete(null);
     }
   };
 
   return (
-    <div className="pane studio">
-      <div className="pane-header">
-        Studio <span className="spacer" />
-        <button className="ghost" title="New note" onClick={() => setAdding((v) => !v)}>
-          ＋
-        </button>
-      </div>
-      <div className="studio-actions">
-        {(["summary", "study_guide", "faq"] as const).map((kind) => (
-          <button
+    <Pane>
+      <PaneHeader title="Studio">
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          aria-label="New note"
+          onClick={() => setAdding((v) => !v)}
+        >
+          <Plus />
+        </Button>
+      </PaneHeader>
+
+      <div className="flex shrink-0 flex-wrap gap-2 border-b border-rule p-3">
+        {KINDS.map((kind) => (
+          <Button
             key={kind}
+            variant="outline"
+            size="xs"
             disabled={!hasReadySources || generating !== null}
             onClick={() => void generate(kind)}
           >
-            {generating === kind ? "Generating…" : `✨ ${KIND_LABEL[kind]}`}
-          </button>
+            {generating === kind ? (
+              <Loader2 className="animate-spin" />
+            ) : (
+              <Sparkles />
+            )}
+            {KIND_LABEL[kind]}
+          </Button>
         ))}
       </div>
-      <div className="pane-body">
+
+      <PaneBody className="p-3">
         {adding && (
-          <div className="note-card">
-            <input
-              style={{ width: "100%", marginBottom: 8 }}
+          <div className="mb-4 border border-rule p-3">
+            <Input
               placeholder="Note title"
               value={draft.title}
               onChange={(e) => setDraft({ ...draft, title: e.target.value })}
             />
-            <textarea
-              style={{ width: "100%", marginBottom: 8 }}
+            <Textarea
+              className="mt-3"
               rows={4}
-              placeholder="Markdown content…"
+              placeholder="Markdown…"
               value={draft.content_md}
-              onChange={(e) => setDraft({ ...draft, content_md: e.target.value })}
+              onChange={(e) =>
+                setDraft({ ...draft, content_md: e.target.value })
+              }
             />
-            <button className="primary" onClick={() => void addNote()}>
-              Save note
-            </button>
+            <div className="mt-3 flex gap-2">
+              <Button size="sm" onClick={() => void addNote()}>
+                Save note
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setAdding(false)}
+              >
+                Cancel
+              </Button>
+            </div>
           </div>
         )}
-        {notes.map((n) => (
-          <div
-            key={n.id}
-            className={`note-card${expanded === n.id ? " expanded" : ""}`}
-          >
-            <div className="note-head">
-              <h4>{n.title}</h4>
-              <span className="badge">{KIND_LABEL[n.kind] ?? n.kind}</span>
-              <button
-                className="ghost"
-                title={expanded === n.id ? "Collapse" : "Expand"}
-                onClick={() => setExpanded(expanded === n.id ? null : n.id)}
-              >
-                {expanded === n.id ? "–" : "⤢"}
-              </button>
-              <button className="ghost" title="Delete" onClick={() => void remove(n.id)}>
-                ✕
-              </button>
-            </div>
-            <Markdown text={n.content_md} />
-          </div>
-        ))}
+
+        <ul>
+          {notes.map((n) => {
+            const open = expanded === n.id;
+            return (
+              <li key={n.id} className="group border-b border-rule py-3">
+                <div className="flex items-start gap-2">
+                  <h3 className="min-w-0 flex-1 font-display text-[14px] font-medium">
+                    {n.title}
+                  </h3>
+                  <Badge variant="ghost">{KIND_LABEL[n.kind] ?? n.kind}</Badge>
+                </div>
+
+                <Markdown
+                  text={n.content_md}
+                  className={cn(
+                    "mt-2 text-[12.5px] leading-relaxed",
+                    open
+                      ? "text-foreground"
+                      : "max-h-32 overflow-hidden text-ink-muted",
+                  )}
+                />
+
+                <div className="mt-1.5 flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    onClick={() => setExpanded(open ? null : n.id)}
+                  >
+                    {open ? <ChevronUp /> : <ChevronDown />}
+                    {open ? "less" : "more"}
+                  </Button>
+                  <span className="flex-1" />
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
+                    aria-label={`Delete ${n.title}`}
+                    className="opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 hover:text-vermilion"
+                    onClick={() => setPendingDelete(n)}
+                  >
+                    <Trash2 />
+                  </Button>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+
         {notes.length === 0 && !adding && (
-          <p style={{ color: "var(--text-dim)", fontSize: 13, textAlign: "center" }}>
-            Generate a summary, study guide or FAQ from your sources — or add your
-            own notes.
+          <p className="px-1 py-6 text-[13px] leading-relaxed text-ink-muted">
+            {hasReadySources
+              ? "Generate a summary, study guide or FAQ from your sources — or write your own note."
+              : "Once a document is indexed you can generate a summary, study guide or FAQ here."}
           </p>
         )}
-      </div>
-    </div>
+      </PaneBody>
+
+      <AlertDialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => !open && setPendingDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete “{pendingDelete?.title}”?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This note is removed permanently.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep it</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-vermilion text-destructive-foreground hover:bg-vermilion/85"
+              onClick={() => void confirmDelete()}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Pane>
   );
 }
