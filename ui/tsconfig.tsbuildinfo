@@ -1,0 +1,1 @@
+{"root":["./src/App.tsx","./src/api.ts","./src/main.tsx","./src/markdown.ts","./src/types.ts","./src/components/ChatPane.tsx","./src/components/CitedText.tsx","./src/components/Markdown.tsx","./src/components/SourcesPane.tsx","./src/components/StudioPane.tsx","./src/pages/Login.tsx","./src/pages/NotebookList.tsx","./src/pages/NotebookView.tsx"],"version":"5.9.3"}
