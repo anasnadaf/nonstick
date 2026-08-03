@@ -4,7 +4,7 @@
 # over the private VPC address, so only those two ports are published.
 services:
   db:
-    image: pgvector/pgvector:pg18
+    image: pgvector/pgvector:0.8.6-pg18
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:?set in .env}
@@ -46,7 +46,7 @@ services:
     mem_limit: 900m
 
   mlflow:
-    image: ghcr.io/mlflow/mlflow:v2.16.2
+    image: ghcr.io/mlflow/mlflow:v3.15.1
     restart: unless-stopped
     command: >
       mlflow server --host 0.0.0.0 --port 5000

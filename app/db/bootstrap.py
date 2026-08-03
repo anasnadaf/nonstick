@@ -9,6 +9,24 @@ from sqlalchemy import text
 from app.config import get_settings
 from app.db.models import Base
 
+# pgvector stores up to 16000 dimensions in a `vector`, but an HNSW index over
+# vector_cosine_ops is capped at 2000. Above that, index the column cast to
+# halfvec — which reaches 4000 — so wide embedding models still get an index.
+# Storage stays full-precision `vector`; only the index is half-precision.
+HNSW_VECTOR_MAX_DIM = 2000
+
+
+def _hnsw_index(dim: int) -> str:
+    if dim <= HNSW_VECTOR_MAX_DIM:
+        return (
+            "CREATE INDEX IF NOT EXISTS ix_chunk_embeddings_hnsw "
+            "ON chunk_embeddings USING hnsw (embedding vector_cosine_ops)"
+        )
+    return (
+        "CREATE INDEX IF NOT EXISTS ix_chunk_embeddings_hnsw "
+        f"ON chunk_embeddings USING hnsw ((embedding::halfvec({dim})) halfvec_cosine_ops)"
+    )
+
 
 def pgvector_ddl(dim: int) -> list[str]:
     return [
@@ -23,8 +41,7 @@ def pgvector_ddl(dim: int) -> list[str]:
         """,
         "CREATE INDEX IF NOT EXISTS ix_chunk_embeddings_notebook "
         "ON chunk_embeddings (notebook_id, user_id)",
-        "CREATE INDEX IF NOT EXISTS ix_chunk_embeddings_hnsw "
-        "ON chunk_embeddings USING hnsw (embedding vector_cosine_ops)",
+        _hnsw_index(dim),
         f"""
         CREATE TABLE IF NOT EXISTS semantic_cache (
             id VARCHAR(32) PRIMARY KEY,
