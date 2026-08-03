@@ -6,9 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 /** Posts credentials to the external auth service (same-origin /auth/* is
- * reverse-proxied to it in production). */
+ * reverse-proxied to it in production).
+ *
+ * portfolio-auth keys accounts on email, not a username — it validates the
+ * field with mail.ParseAddress and rejects anything else with a 400. */
 export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -21,7 +24,7 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
       const resp = await fetch("/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password }),
       });
       if (!resp.ok) {
         setError(
@@ -68,11 +71,12 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
 
         <div className="mt-9 flex flex-col gap-6">
           <label className="flex flex-col gap-1.5">
-            <span className="label">Username</span>
+            <span className="label">Email</span>
             <Input
-              value={username}
-              autoComplete="username"
-              onChange={(e) => setUsername(e.target.value)}
+              type="email"
+              value={email}
+              autoComplete="email"
+              onChange={(e) => setEmail(e.target.value)}
             />
           </label>
           <label className="flex flex-col gap-1.5">
@@ -95,7 +99,7 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
         <Button
           className="mt-8 w-full"
           size="lg"
-          disabled={busy || !username || !password}
+          disabled={busy || !email || !password}
         >
           {busy ? "Signing in…" : "Sign in"}
         </Button>
