@@ -11,7 +11,7 @@ from app.agent.mcp import load_mcp_tools
 from app.api import chat, notebooks, notes, sources
 from app.auth import User, require_user
 from app.config import get_settings
-from app.db.models import Base
+from app.db.bootstrap import create_schema
 from app.db.session import dispose_engine, get_engine
 from app.obs import metrics
 from app.obs.tracing import setup_tracing
@@ -24,9 +24,7 @@ async def lifespan(app: FastAPI):
     settings = get_settings()
     if not settings.is_postgres:
         # zero-infra mode: sqlite schema is created in place; postgres uses alembic
-        engine = get_engine()
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
+        await create_schema(get_engine())
     setup_tracing()
     if not settings.llm_mock:
         metrics.register_litellm_callbacks()

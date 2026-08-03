@@ -126,7 +126,9 @@ class FaissStore:
             mat = np.load(npy)
             ids = json.loads(ids_path.read_text())
         else:
-            mat = np.zeros((0, get_settings().embedding_dim), dtype=np.float32)
+            # width is taken from the first vector stored, so the store never
+            # disagrees with the embedding model actually in use
+            mat = np.zeros((0, 0), dtype=np.float32)
             ids = []
         self._cache[key] = (ids, mat)
         return ids, mat
@@ -147,7 +149,8 @@ class FaissStore:
             norms = np.linalg.norm(new, axis=1, keepdims=True)
             norms[norms == 0] = 1.0
             new /= norms
-            self._cache[key] = (ids + [it.chunk_id for it in items], np.vstack([mat, new]))
+            combined = new if mat.shape[0] == 0 else np.vstack([mat, new])
+            self._cache[key] = (ids + [it.chunk_id for it in items], combined)
             self._save(key)
 
     async def search(
