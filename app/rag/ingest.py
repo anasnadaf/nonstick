@@ -15,6 +15,7 @@ from app.config import get_settings
 from app.db.models import Chunk, Source, SourceStatus
 from app.db.session import get_sessionmaker
 from app.llm.client import get_llm
+from app.obs import metrics
 from app.rag.store import VectorItem, get_vector_store
 
 logger = logging.getLogger(__name__)
@@ -107,8 +108,10 @@ async def ingest_source(source_id: str, file_path: Path) -> None:
                 .values(status=SourceStatus.READY, chunk_count=len(rows), error=None)
             )
             await db.commit()
+        metrics.INGESTED_CHUNKS.inc(len(rows))
         logger.info("Ingested source %s: %d chunks", source_id, len(chunks))
     except Exception as exc:
+        metrics.INGEST_FAILURES.inc()
         logger.exception("Ingestion failed for source %s", source_id)
         async with sessionmaker() as db:
             await db.execute(

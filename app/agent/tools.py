@@ -154,4 +154,11 @@ def build_tools(
         )
         executors["tavily_search"] = tavily_search
 
+    from app.agent.mcp import get_mcp_tools
+
+    for schema, name, executor in get_mcp_tools():
+        if name not in executors:
+            schemas.append(schema)
+            executors[name] = executor
+
     return schemas, executors

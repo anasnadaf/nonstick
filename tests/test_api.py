@@ -197,3 +197,19 @@ class TestMisc:
         assert (await client.get("/healthz")).json() == {"status": "ok"}
         me = (await client.get("/api/me")).json()
         assert me["id"] == "dev" and me["auth_enabled"] is False
+
+
+class TestMetrics:
+    async def test_prometheus_metrics_exposed(self, client):
+        nb = await make_notebook(client)
+        up = await upload_text(client, nb, name="metrics.txt")
+        await wait_ready(client, nb, up.json()["id"])
+        q = {"message": "What is oxidative phosphorylation?"}
+        await client.post(f"/api/notebooks/{nb}/chat", json=q)
+        await client.post(f"/api/notebooks/{nb}/chat", json=q)
+
+        body = (await client.get("/metrics")).text
+        assert 'nonstick_tool_calls_total{tool="search_documents"}' in body
+        assert 'nonstick_semantic_cache_events_total{event="hit"}' in body
+        assert "nonstick_chat_pipeline_seconds_bucket" in body
+        assert "nonstick_ingested_chunks_total" in body
