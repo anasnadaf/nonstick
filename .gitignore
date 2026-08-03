@@ -7,6 +7,7 @@ venv/
 !.env.example
 node_modules/
 ui/dist/
+*.tsbuildinfo
 .DS_Store
 *.faiss
 *.pkl

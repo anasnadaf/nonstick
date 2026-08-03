@@ -1,0 +1,339 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ------------------------------------------------------------------
+   Type — latin subsets only, served from node_modules through Vite so
+   the container never reaches for a CDN.
+   ------------------------------------------------------------------ */
+
+@font-face {
+  font-family: "Fraunces";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("@fontsource-variable/fraunces/files/fraunces-latin-full-normal.woff2")
+    format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Public Sans";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("@fontsource-variable/public-sans/files/public-sans-latin-wght-normal.woff2")
+    format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url("@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2")
+    format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ------------------------------------------------------------------
+   Palette — paper & ink, oxidised copper accent.
+   Both themes carry the same token names; nothing below this block
+   needs to know which one is active.
+   ------------------------------------------------------------------ */
+
+:root {
+  --paper: #faf8f4;
+  --paper-raised: #f4f1ea;
+  --paper-sunk: #efeade;
+  --ink: #14110e;
+  --ink-muted: #6b635a;
+  --ink-faint: #9c9286;
+  --rule: #ddd7cc;
+  --rule-strong: #c8c0b1;
+  --copper: #9a5b3c;
+  --copper-deep: #7e4830;
+  --copper-wash: #9a5b3c14;
+  --verdigris: #4a6b5d;
+  --vermilion: #a33a2a;
+  /* Warm ink scrim — fixed in both themes so overlays never invert. */
+  --scrim: #14110ea6;
+
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--paper);
+  --card-foreground: var(--ink);
+  --popover: var(--paper-raised);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--paper);
+  --secondary: var(--paper-sunk);
+  --secondary-foreground: var(--ink);
+  --muted: var(--paper-sunk);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--copper-wash);
+  --accent-foreground: var(--copper-deep);
+  --destructive: var(--vermilion);
+  --destructive-foreground: var(--paper);
+  --border: var(--rule);
+  --input: var(--rule-strong);
+  --ring: var(--copper);
+
+  --radius: 2px;
+}
+
+.dark {
+  --paper: #14110e;
+  --paper-raised: #1c1815;
+  --paper-sunk: #241f1b;
+  --ink: #ede8e0;
+  --ink-muted: #9a9086;
+  --ink-faint: #6f665d;
+  --rule: #332c26;
+  --rule-strong: #473e35;
+  --copper: #c97f58;
+  --copper-deep: #dd9a76;
+  --copper-wash: #c97f581f;
+  --verdigris: #7ba898;
+  --vermilion: #e06a55;
+  --scrim: #070504cc;
+
+  --primary: var(--ink);
+  --primary-foreground: var(--paper);
+  --destructive-foreground: #1a0f0c;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* editorial aliases, used directly in markup */
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-paper-sunk: var(--paper-sunk);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-copper: var(--copper);
+  --color-copper-deep: var(--copper-deep);
+  --color-copper-wash: var(--copper-wash);
+  --color-verdigris: var(--verdigris);
+  --color-vermilion: var(--vermilion);
+  --color-scrim: var(--scrim);
+
+  --font-sans: "Public Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --text-display: clamp(2.75rem, 7.5vw, 6rem);
+  --text-display--line-height: 0.94;
+  --text-display--letter-spacing: -0.025em;
+  --text-title: clamp(1.875rem, 3.6vw, 3rem);
+  --text-title--line-height: 1.06;
+  --text-title--letter-spacing: -0.018em;
+
+  /* Depth in this design comes from rules and whitespace, never from a
+     blur. Zeroing the tokens keeps stock shadcn variants honest. */
+  --shadow-2xs: none;
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-xl: none;
+  --shadow-2xl: none;
+
+  --radius-sm: 1px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 3px;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-optical-sizing: auto;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display;
+    font-variation-settings:
+      "SOFT" 0,
+      "WONK" 1;
+  }
+
+  ::selection {
+    background: var(--copper);
+    color: var(--paper);
+  }
+
+  :focus-visible {
+    @apply outline-copper outline-2 outline-offset-2;
+  }
+
+  /* Metadata reads as instrumentation: mono, tracked out, tabular. */
+  .label {
+    @apply font-mono text-[10px] uppercase tracking-[0.16em] text-ink-faint;
+  }
+
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Component classes.
+   `.cite-chip` is built as an HTML string in CitedText.tsx and injected
+   through dangerouslySetInnerHTML, so it must be real CSS rather than
+   utilities Tailwind would have to discover inside a template literal.
+   ------------------------------------------------------------------ */
+
+.cite-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding: 0 0.25rem;
+  margin: 0 0.0625rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: 1px;
+  background: transparent;
+  color: var(--copper-deep);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  vertical-align: 0.1em;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.cite-chip:hover,
+.cite-chip[data-active="true"] {
+  background: var(--copper);
+  border-color: var(--copper);
+  color: var(--paper);
+}
+
+/* Uncoated-stock tooth. Barely visible by design — it stops the large
+   paper fields from reading as flat #FFF. */
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.032;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.dark .grain::after {
+  mix-blend-mode: screen;
+  opacity: 0.045;
+}
+
+/* Assistant answers and generated notes render through marked + DOMPurify,
+   so utilities cannot reach them — tune the typography plugin instead. */
+.prose-editorial {
+  --tw-prose-body: var(--ink);
+  --tw-prose-headings: var(--ink);
+  --tw-prose-lead: var(--ink-muted);
+  --tw-prose-links: var(--copper-deep);
+  --tw-prose-bold: var(--ink);
+  --tw-prose-counters: var(--ink-faint);
+  --tw-prose-bullets: var(--rule-strong);
+  --tw-prose-hr: var(--rule);
+  --tw-prose-quotes: var(--ink-muted);
+  --tw-prose-quote-borders: var(--copper);
+  --tw-prose-captions: var(--ink-faint);
+  --tw-prose-code: var(--ink);
+  --tw-prose-pre-code: var(--ink);
+  --tw-prose-pre-bg: var(--paper-sunk);
+  --tw-prose-th-borders: var(--rule-strong);
+  --tw-prose-td-borders: var(--rule);
+}
+
+.prose-editorial :where(h1, h2, h3, h4) {
+  font-family: var(--font-display);
+  font-variation-settings:
+    "SOFT" 0,
+    "WONK" 1;
+  letter-spacing: -0.012em;
+}
+
+.prose-editorial :where(pre) {
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+}
+
+.prose-editorial :where(code)::before,
+.prose-editorial :where(code)::after {
+  content: none;
+}
+
+.prose-editorial :where(:not(pre) > code) {
+  background: var(--paper-sunk);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: 0.1em 0.3em;
+  font-weight: 500;
+}
+
+.prose-editorial :where(blockquote) {
+  font-style: normal;
+  border-left-width: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

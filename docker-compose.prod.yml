@@ -20,7 +20,7 @@ services:
     mem_limit: 512m
 
   app:
-    image: ${IMAGE:-anasnadaf/nonstick:latest}
+    image: ${IMAGE:-ghcr.io/anasnadaf/nonstick:latest}
     restart: unless-stopped
     depends_on:
       db:

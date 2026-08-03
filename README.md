@@ -2,8 +2,6 @@
 
 **A multi-user, NotebookLM-style research & study assistant.** Upload your documents into notebooks, chat with them through an agentic RAG pipeline with inline citations, and pull in fresh context from the web — provider-agnostic (LiteLLM → Bedrock/OpenAI/Gemini), observable (MLflow tracing + Prometheus), and product-grade (guardrails, semantic caching, per-user isolation).
 
-> Modernized rebuild of the original 2024 NonStick.ai (Flask + LangChain + GPT-3.5 + FAISS).
-
 ## Stack
 
 - **API**: FastAPI (SSE streaming chat)
@@ -11,7 +9,8 @@
 - **LLM**: LiteLLM Router (model/provider set purely via env)
 - **Vector store**: pgvector (FAISS fallback for zero-infra local mode)
 - **Observability**: MLflow GenAI tracing, Prometheus metrics
-- **UI**: React (Vite) — three-pane NotebookLM-style layout: sources / chat / notes
+- **UI**: React (Vite) + Tailwind v4 + shadcn/ui — an editorial, paper-and-ink
+  reading surface over a resizable three-pane workspace: sources / chat / notes
 
 Live at [nonstick.anasnadaf.com](https://nonstick.anasnadaf.com).
 
@@ -73,6 +72,18 @@ docker compose up --build
 ```bash
 cd ui && npm install && npm run dev   # Vite dev server proxies /api to :8082
 ```
+
+Routes: `/` is a public landing page, `/notebooks` the index, `/notebook/:id` the
+workspace. `⌘K` opens the command palette; the masthead toggle switches between
+the paper and ink themes.
+
+The landing hero is a three.js "ink lattice" — documents, their chunks, and the
+citation edges that cross between them, drawn as an engraving rather than a
+particle field. It is reached through a dynamic `import()` so three.js stays in
+its own chunk and never loads on the workspace routes, and it degrades to an SVG
+plate when WebGL is unavailable. `prefers-reduced-motion` renders a single
+frame, and the render loop suspends when the canvas scrolls out of view or the
+tab is backgrounded.
 
 ## Configuration
 
