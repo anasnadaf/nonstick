@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       db:
-        image: pgvector/pgvector:pg18
+        image: pgvector/pgvector:0.8.6-pg18
         env:
           POSTGRES_USER: nonstick
           POSTGRES_PASSWORD: nonstick
