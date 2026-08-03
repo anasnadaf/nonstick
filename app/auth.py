@@ -46,7 +46,10 @@ async def require_user(
         raise HTTPException(status_code=401, detail="Invalid token")
 
     data = resp.json()
-    uid = str(data.get("id") or data.get("user_id") or data.get("sub") or "")
+    # portfolio-auth answers /auth/me with {"email": ...} and nothing else, so
+    # email has to be an accepted identifier — it is the JWT subject there, and
+    # unique in the users table, which makes it a stable scoping key.
+    uid = str(data.get("id") or data.get("user_id") or data.get("sub") or data.get("email") or "")
     if not uid:
         raise HTTPException(status_code=401, detail="Auth service returned no user id")
     return User(id=uid, username=str(data.get("username") or data.get("email") or uid))
