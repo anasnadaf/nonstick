@@ -283,10 +283,6 @@ export default function Landing() {
       <footer className="px-5 py-12 sm:px-8">
         <div className="mx-auto flex max-w-[1180px] flex-wrap items-baseline justify-between gap-4">
           <Wordmark />
-          <p className="label max-w-[42ch]">
-            A modernised rebuild of the 2024 original — Flask, LangChain,
-            GPT-3.5, FAISS
-          </p>
           <a
             href={REPO}
             target="_blank"

@@ -2,8 +2,6 @@
 
 **A multi-user, NotebookLM-style research & study assistant.** Upload your documents into notebooks, chat with them through an agentic RAG pipeline with inline citations, and pull in fresh context from the web — provider-agnostic (LiteLLM → Bedrock/OpenAI/Gemini), observable (MLflow tracing + Prometheus), and product-grade (guardrails, semantic caching, per-user isolation).
 
-> Modernized rebuild of the original 2024 NonStick.ai (Flask + LangChain + GPT-3.5 + FAISS).
-
 ## Stack
 
 - **API**: FastAPI (SSE streaming chat)
