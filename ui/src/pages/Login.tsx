@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { setToken } from "../api";
+
+import { setToken } from "@/api";
+import AmbientField from "@/components/three/AmbientField";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 /** Posts credentials to the external auth service (same-origin /auth/* is
  * reverse-proxied to it in production). */
@@ -20,7 +24,11 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
         body: JSON.stringify({ username, password }),
       });
       if (!resp.ok) {
-        setError(resp.status === 401 ? "Invalid credentials" : `Login failed (${resp.status})`);
+        setError(
+          resp.status === 401
+            ? "Invalid credentials"
+            : `Login failed (${resp.status})`,
+        );
         return;
       }
       const data = await resp.json();
@@ -39,29 +47,58 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
   };
 
   return (
-    <div className="login-page">
-      <form className="login-card" onSubmit={(e) => void submit(e)}>
-        <h1>NonStick.ai</h1>
-        <p style={{ margin: 0, color: "var(--text-dim)", fontSize: 13 }}>
-          Sign in to your notebooks
+    <div className="grain relative flex h-full items-center justify-center overflow-hidden px-5">
+      <AmbientField />
+
+      <form
+        className="relative w-full max-w-[360px] border border-rule bg-background/85 p-10"
+        onSubmit={(e) => void submit(e)}
+      >
+        <p className="label mb-5 flex items-center gap-3">
+          <span className="inline-block h-px w-6 bg-copper" />
+          Sign in
         </p>
-        <input
-          placeholder="Username"
-          value={username}
-          autoComplete="username"
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <input
-          placeholder="Password"
-          type="password"
-          value={password}
-          autoComplete="current-password"
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        {error && <div className="error">{error}</div>}
-        <button className="primary" disabled={busy || !username || !password}>
+
+        <h1 className="font-display text-3xl font-semibold tracking-[-0.02em]">
+          NonStick<span className="text-copper">.ai</span>
+        </h1>
+        <p className="mt-2 text-[13px] text-ink-muted">
+          Your notebooks are waiting.
+        </p>
+
+        <div className="mt-9 flex flex-col gap-6">
+          <label className="flex flex-col gap-1.5">
+            <span className="label">Username</span>
+            <Input
+              value={username}
+              autoComplete="username"
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="label">Password</span>
+            <Input
+              type="password"
+              value={password}
+              autoComplete="current-password"
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </label>
+        </div>
+
+        {error && (
+          <p className="mt-5 border-l-2 border-vermilion pl-3 text-[13px] text-vermilion">
+            {error}
+          </p>
+        )}
+
+        <Button
+          className="mt-8 w-full"
+          size="lg"
+          disabled={busy || !username || !password}
+        >
           {busy ? "Signing in…" : "Sign in"}
-        </button>
+        </Button>
       </form>
     </div>
   );
