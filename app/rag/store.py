@@ -17,6 +17,7 @@ import numpy as np
 from sqlalchemy import text
 
 from app.config import get_settings
+from app.db.bootstrap import HNSW_VECTOR_MAX_DIM
 from app.db.session import get_engine
 
 
@@ -71,13 +72,21 @@ class PgVectorStore:
         self, notebook_id: str, user_id: str, query: list[float], k: int
     ) -> list[tuple[str, float]]:
         engine = get_engine()
+        dim = get_settings().embedding_dim
+        # Above 2000 dimensions the HNSW index is built on the halfvec cast
+        # (see app/db/bootstrap.py). The ORDER BY expression has to match the
+        # indexed expression exactly, or the planner falls back to a seq scan.
+        if dim > HNSW_VECTOR_MAX_DIM:
+            distance = f"(embedding::halfvec({dim}) <=> CAST(:q AS halfvec({dim})))"
+        else:
+            distance = "(embedding <=> CAST(:q AS vector))"
         async with engine.connect() as conn:
             rows = await conn.execute(
                 text(
-                    "SELECT chunk_id, 1 - (embedding <=> CAST(:q AS vector)) AS score "
+                    f"SELECT chunk_id, 1 - {distance} AS score "
                     "FROM chunk_embeddings "
                     "WHERE notebook_id = :nb AND user_id = :u "
-                    "ORDER BY embedding <=> CAST(:q AS vector) LIMIT :k"
+                    f"ORDER BY {distance} LIMIT :k"
                 ),
                 {"q": _to_pgvector(query), "nb": notebook_id, "u": user_id, "k": k},
             )
