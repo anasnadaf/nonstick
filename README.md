@@ -64,8 +64,14 @@ docker compose up --build
 | Service | URL |
 |---|---|
 | App | http://localhost:8082 |
-| MLflow | http://localhost:5000 |
-| Prometheus | http://localhost:9090 |
+| MLflow | http://localhost:5000 (`MLFLOW_PORT` to move it) |
+| Prometheus | http://localhost:9090 (`PROMETHEUS_PORT` to move it) |
+
+MLflow and Prometheus are compose services: `uv run nonstick serve` on its own
+starts neither, though the app always serves `/metrics` itself. On macOS,
+AirPlay Receiver holds port 5000 — set `MLFLOW_PORT=5001` or turn AirPlay off,
+otherwise the container cannot bind. Note also that `prometheus.yml` scrapes
+`app:8082`, which resolves on the compose network only.
 
 ### UI development
 

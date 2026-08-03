@@ -5,4 +5,7 @@ scrape_configs:
   - job_name: nonstick
     metrics_path: /metrics
     static_configs:
+      # `app` resolves on the compose network only. If you run the API natively
+      # (`uv run nonstick serve`) and Prometheus in Docker, swap this for
+      # host.docker.internal:8082 — the compose hostname will not resolve.
       - targets: ["app:8082"]

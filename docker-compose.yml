@@ -29,7 +29,13 @@ services:
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-openai/text-embedding-3-small}
       EMBEDDING_DIM: ${EMBEDDING_DIM:-1536}
       LLM_MOCK: ${LLM_MOCK:-0}
+      # LiteLLM picks the credential up from whichever of these matches the
+      # provider prefix in MODEL / EMBEDDING_MODEL. Chat-only providers such as
+      # DeepSeek need a second provider for EMBEDDING_MODEL.
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
       AWS_REGION_NAME: ${AWS_REGION_NAME:-}
@@ -48,7 +54,9 @@ services:
       --backend-store-uri sqlite:////mlflow/mlflow.db
       --default-artifact-root /mlflow/artifacts
     ports:
-      - "5000:5000"
+      # macOS AirPlay Receiver holds host port 5000, which makes this fail to
+      # bind. Set MLFLOW_PORT=5001 (or disable AirPlay) if that hits you.
+      - "${MLFLOW_PORT:-5000}:5000"
     volumes:
       - mlflow_data:/mlflow
 
@@ -57,7 +65,7 @@ services:
     command:
       - --config.file=/etc/prometheus/prometheus.yml
     ports:
-      - "9090:9090"
+      - "${PROMETHEUS_PORT:-9090}:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
 
